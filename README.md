@@ -33,3 +33,7 @@ Goals:
     
     * Change server settings from tool (much like the settings available in WebAdmin -- would require interacting with either WebAdmin  
       through the tool or through server files, depending on setting) 
+      
+      + Server Takeover
+      
+      + Change gamemode (Survival, Versus, Weekly)
