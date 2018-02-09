@@ -3,6 +3,7 @@ The purpose of this plugin is to provide a simple GUI for extended server contro
 
 Goals:
   Interact with WebAdmin
+    
     * Automated chat messages
     
     * Chat polling for specific messages
