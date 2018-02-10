@@ -25,14 +25,20 @@ public abstract class PageParser {
 	
 	PageParser(Document doc){
 		this.document = doc;
-		//this.pageElements = doc.getAllElements();
-		//this.elementMap = new HashMap<Element, ArrayList<String>>();
 	}
 	
 	public Elements getElements(){
 		Elements e = document.getAllElements();
 		this.numElements = e.size();
 		return document.getAllElements();
+	}
+	
+	public Elements getLinks(){
+		return this.document.select("a[href]");
+	}
+	
+	public Elements getDivs(){
+		return this.document.select("div");
 	}
 	
 	public Document getPage(String page){

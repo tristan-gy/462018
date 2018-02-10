@@ -8,15 +8,23 @@ import javafx.application.Application;
 public class Test {
 
 	private static double versionNumber = 0.01;
+	private static String baseURL;
 	
 	public static void main(String[] args)  throws Exception {
-		//LoginHandler lh = new LoginHandler();
-		//AdminGUI gui = new AdminGUI();
-		//gui.initializeLoginGUI(lh);
-		//gui.launch(args);
-		Application.launch(AdminGUI.class, "");
-		
-		//adminGUI.lh = lgh;
+		if(login()){
+			System.out.println("Base URL: " + baseURL);
+		}
+
+	}
+	
+	private static boolean login(){
+		Application.launch(LoginGUI.class, "");
+		LoginHandler.getSessionCookies();
+		return LoginHandler.loginSuccessful();
+	}
+	
+	public static void setBaseURL(String url){
+		baseURL = url;
 	}
 	
 	public static double getVersion(){

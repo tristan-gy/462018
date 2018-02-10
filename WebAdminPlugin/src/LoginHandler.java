@@ -7,35 +7,20 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 //import org.jsoup.Connection.Response;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class LoginHandler {
-	private String errorMsg = "";
-	private boolean loginSuccess;
-	private String baseURL;
-	private HashMap<String, String> sessionCookies;
+	private static String errorMsg = "";
+	private static boolean loginSuccess;
+	private static Document home;
+	private static HashMap<String, String> sessionCookies;
 	
-	public LoginHandler(){ 
-		//LoginData ld = new LoginData();
-		//AdminGUI adminGUI = new AdminGUI();
-		//AdminGUI.lh = this;
-		//adminGUI.ld = ld;
-		//attemptLogin(ld.getLoginData());
-		//loginSuccess = false; 	
-	}
-	
-	public void attemptLogin(ArrayList<String> loginDetails) throws Exception {
-		login(loginDetails);
-		loginSuccess = true;
-	}
-	
-	public boolean loginSuccessful(){
-		return loginSuccess;
+	public static boolean attemptLogin(ArrayList<String> loginDetails) throws Exception {
+		return login(loginDetails);
 	}
 	
 	/* http://joelmin.blogspot.com/2016/04/how-to-login-to-website-using-jsoup-java_4.html */
-	private boolean login(ArrayList<String> loginDetails) throws IOException{
+	private static boolean login(ArrayList<String> loginDetails) throws IOException{
 		String USER_AGENT = "Mozilla/5.0";
 		HashMap<String, String> cookies = new HashMap<>();
 		HashMap<String, String> formData = new HashMap<>();
@@ -67,19 +52,21 @@ public class LoginHandler {
 		
 		if(!loginDoc.title().equals(homeDoc.title())){
 			System.out.println(homeDoc.title());
-			baseURL = loginDoc.baseUri();
+			Test.setBaseURL(loginDetails.get(0));
 			sessionCookies = cookies;
+			home = homeDoc;
 			return true;
 		} else {
 			System.out.println("Login failed.");
 			errorMsg = homeDoc.getElementsByClass("message error").text();
+			Test.setBaseURL(errorMsg);
 			return false;	
 		}
 		
 	}
 	
 	/* Returns the value of our token */
-	private String extractToken(Document page){
+	private static String extractToken(Document page){
 		Elements tokenFinder = page.select("[name='token']");
 		String token = null;
 		if(tokenFinder.isEmpty()){
@@ -94,11 +81,10 @@ public class LoginHandler {
 			System.out.println("Something went wrong with our token capture -- cannot proceed!");
 			return null;
 		}
-
 		return token;
 	}
 	
-	private String choiceStringToValue(String s){
+	private static String choiceStringToValue(String s){
 		/* 0 = Until next map load
 		 * -1 = Browser session
 		 * 1800 = 30 minutes
@@ -134,15 +120,12 @@ public class LoginHandler {
 		}
 	}
 	
-	public String getErrorMessage(){
-		return errorMsg;
-	}
+	/* Getters */ 
+	public static boolean loginSuccessful(){return loginSuccess;}
 	
-	public String getBaseURL(){
-		return baseURL;
-	}
+	public static String getErrorMessage(){return errorMsg;}
 	
-	public HashMap<String, String> getSessionCookies(){
-		return sessionCookies;
-	}
+	public static Document getHome(){return home;}
+	
+	public static HashMap<String, String> getSessionCookies(){return sessionCookies;}
 }
