@@ -1,82 +1,108 @@
-import java.awt.*;
-import java.awt.event.*;
 import java.util.ArrayList;
 
-public class AdminGUI extends Frame implements ActionListener, WindowListener {
-	private static Frame LoginGUI;
-//heeeeelo
+import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
-	public void initializeLoginGUI(LoginHandler lh) {
-		Label lbl_url;
-		Label lbl_username;
-		Label lbl_password;
-		Label lbl_loginDuration;
+public class AdminGUI extends Application { 
+	
+	//private ArrayList<String> userData;
+	private boolean loginSuccess;
+	//private LoginHandler lh;
+	//public static LoginData ld;
+	
+	public void start(Stage primaryStage){
+		GridPane grid = new GridPane();
+		grid.setAlignment(Pos.CENTER);
+		grid.setHgap(10);
+		grid.setVgap(10);
+		grid.setPadding(new Insets(25, 25, 25, 25));
 		
-		TextField tf_url;
-		TextField tf_username;
-		TextField tf_password;
+		Label lbl_error = new Label();
+		Label lbl_errorMsg = new Label();
+		grid.add(lbl_error, 0, 6);
+		grid.add(lbl_errorMsg, 1, 6);
 		
-		Choice c_loginDuration;
+		Text sceneTitle = new Text("Enter Server Information");
+		sceneTitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+		grid.add(sceneTitle, 0, 0, 1, 1);
 		
-		Button loginSubmit;
-		LoginGUI = new Frame("Connect to your server");
-		LoginGUI.setSize(300, 300);
-		LoginGUI.setLayout(new FlowLayout());
-		LoginGUI.addWindowListener(new WindowListener() {
-			public void windowClosing(WindowEvent e){
-				System.exit(0);
-			}
-			public void windowActivated(WindowEvent arg0) {}
-			public void windowClosed(WindowEvent arg0) {}
-			public void windowDeactivated(WindowEvent arg0) {}
-			public void windowDeiconified(WindowEvent arg0) {}
-			public void windowIconified(WindowEvent arg0) {}
-			public void windowOpened(WindowEvent arg0) {}
-		});
+		Label server = new Label("Server Address:");
+		grid.add(server, 0, 1);
 		
+		TextField tf_url = new TextField();
+		grid.add(tf_url, 1, 1);
 		
-		lbl_url = new Label("Server URL:");
-		tf_url = new TextField(20);
-		LoginGUI.add(lbl_url);
-		LoginGUI.add(tf_url);
+		Label username = new Label("Username:");
+		grid.add(username, 0, 2);
+		TextField tf_username = new TextField();
+		grid.add(tf_username, 1, 2);
 		
-		lbl_username = new Label("Username:");
-		tf_username = new TextField(20);
-		LoginGUI.add(lbl_username);
-		LoginGUI.add(tf_username);
+		Label password = new Label("Password:");
+		grid.add(password, 0, 3);
+		PasswordField tf_password = new PasswordField();
+		grid.add(tf_password, 1, 3);
 		
-		lbl_password = new Label("Password:");
-		tf_password = new TextField(20);
-		LoginGUI.add(lbl_password);
-		LoginGUI.add(tf_password);
+		ChoiceBox<String> choices = new ChoiceBox<String>();
+		choices.getItems().add("Browser session");
+		choices.getItems().add("Until next map load");
+		choices.getItems().add("30 minutes");
+		choices.getItems().add("1 hour");
+		choices.getItems().add("1 day");
+		choices.getItems().add("1 week");
+		choices.getItems().add("1 month");
+		choices.getSelectionModel().selectFirst();
 		
-		lbl_loginDuration = new Label("Login Duration:");
-		c_loginDuration = new Choice();
-		c_loginDuration.add("Until next map load");
-		c_loginDuration.add("Browser session");
-		c_loginDuration.add("30 minutes");
-		c_loginDuration.add("1 hour");
-		c_loginDuration.add("1 day");
-		c_loginDuration.add("1 week");
-		c_loginDuration.add("1 month");
-		LoginGUI.add(lbl_loginDuration);
-		LoginGUI.add(c_loginDuration);
+		grid.add(choices, 1, 4);
 		
-		loginSubmit = new Button("Submit");
-		loginSubmit.addActionListener(new ActionListener() {
+		Button btn = new Button();
+		grid.add(btn, 1, 5);
+		btn.setText("Submit Credentials");
+		
+		tf_username.setText("admin");
+		tf_password.setText("cody_test_pass");
+		tf_url.setText("http://deliveryboys.game.nfoservers.com:8080/ServerAdmin/");
+		btn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
-			public void actionPerformed(ActionEvent evt) {
-				if(tf_username.getText().length() > 0 && 
-						tf_password.getText().length() > 4 &&
-						tf_url.getText().length() > 5) {
+			public void handle(ActionEvent event){
+				if(tf_username.getText().length() > 4 && tf_password.getText().length() > 4 && tf_url.getText().length() > 5){
 					
 					ArrayList<String> userInfo = new ArrayList<>();
 					userInfo.add(tf_url.getText());
 					userInfo.add(tf_username.getText());
 					userInfo.add(tf_password.getText());
-					userInfo.add(c_loginDuration.getSelectedItem());
+					userInfo.add(choices.getSelectionModel().getSelectedItem().toString());
+					
 					try {
+						//ld.setLoginData(userInfo);
+						//loginSuccess = ld.getLoginSuccess();
+						LoginHandler lh = new LoginHandler();
 						lh.attemptLogin(userInfo);
+						loginSuccess = lh.loginSuccessful();
+						if(loginSuccess){
+							lbl_error.setTextFill(Color.GREEN);
+							lbl_error.setText("Login successful!");
+							lbl_errorMsg.setText(""); //remove any error messages we may have gotten
+							//delay_closeGUI(primaryStage);
+						} else {
+							lbl_error.setTextFill(Color.RED);
+							lbl_error.setText("Error:");
+							lbl_errorMsg.setText(lh.getErrorMessage());
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -84,35 +110,28 @@ public class AdminGUI extends Frame implements ActionListener, WindowListener {
 			}
 		});
 		
-		LoginGUI.add(loginSubmit);
-		LoginGUI.setVisible(true);
+		Scene scene = new Scene(grid, 400, 275);
 		
-		
+		primaryStage.setTitle("KF2 WebAdmin Plugin " + Test.getVersion());
+		primaryStage.setScene(scene);
+
+		primaryStage.show();
 	}
 	
-
-	@Override
-	public void windowActivated(WindowEvent arg0) {}
-
-	@Override
-	public void windowClosed(WindowEvent arg0) {}
-
-	@Override
-	public void windowDeactivated(WindowEvent arg0) {}
-
-	@Override
-	public void windowDeiconified(WindowEvent arg0) {}
-
-	@Override
-	public void windowIconified(WindowEvent arg0) {}
-
-	@Override
-	public void windowOpened(WindowEvent arg0) {}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {}
-
-	@Override
-	public void windowClosing(WindowEvent e) {}
-
+	//private void setUserData(ArrayList<String> data){
+	//	//userData = data;
+	//}
+	//public ArrayList<String> getUserData(){
+	//	return userData;
+	//}
+	
+	private void delay_closeGUI(Stage stage){
+		try{
+			Thread.sleep(2500);
+			stage.close();
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		}
+	}
+	
 }

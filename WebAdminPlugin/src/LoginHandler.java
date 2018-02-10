@@ -1,41 +1,37 @@
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
+//import java.util.Map;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.Connection.Response;
+//import org.jsoup.Connection.Response;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class LoginHandler {
+	private String errorMsg = "";
+	private boolean loginSuccess;
+	private String baseURL;
+	private HashMap<String, String> sessionCookies;
 	
-	public LoginHandler(){}
+	public LoginHandler(){ 
+		//LoginData ld = new LoginData();
+		//AdminGUI adminGUI = new AdminGUI();
+		//AdminGUI.lh = this;
+		//adminGUI.ld = ld;
+		//attemptLogin(ld.getLoginData());
+		//loginSuccess = false; 	
+	}
 	
-	public boolean attemptLogin(ArrayList<String> loginDetails) throws Exception {
-
-		//String loginFormURL = "http://deliveryboys.game.nfoservers.com:8080/ServerAdmin/";
-		//String loginActionURL = "http://deliveryboys.game.nfoservers.com:8080/ServerAdmin/";
-		//String username = "admin";
-		//String password = "cody_test_pass";
-		
-		//ArrayList<String> loginDetails = new ArrayList<>();
-		//loginDetails.add(loginFormURL);
-		//loginDetails.add(loginActionURL);
-		//loginDetails.add(username);
-		//loginDetails.add(password);	
-
-		boolean loginSuccess = login(loginDetails);
-		
-		if(!loginSuccess){
-			System.out.println("COULD NOT LOG IN.");
-			return false;
-		} else {
-			System.out.println("Successful login!");
-			return true;
-		}
-		
+	public void attemptLogin(ArrayList<String> loginDetails) throws Exception {
+		login(loginDetails);
+		loginSuccess = true;
+	}
+	
+	public boolean loginSuccessful(){
+		return loginSuccess;
 	}
 	
 	/* http://joelmin.blogspot.com/2016/04/how-to-login-to-website-using-jsoup-java_4.html */
@@ -68,12 +64,18 @@ public class LoginHandler {
 				.execute();
 		
 		Document homeDoc = homePage.parse();
-
+		
 		if(!loginDoc.title().equals(homeDoc.title())){
 			System.out.println(homeDoc.title());
+			baseURL = loginDoc.baseUri();
+			sessionCookies = cookies;
 			return true;
+		} else {
+			System.out.println("Login failed.");
+			errorMsg = homeDoc.getElementsByClass("message error").text();
+			return false;	
 		}
-		return false;
+		
 	}
 	
 	/* Returns the value of our token */
@@ -97,41 +99,50 @@ public class LoginHandler {
 	}
 	
 	private String choiceStringToValue(String s){
-		/* 
-		 * 0 = Until next map load
+		/* 0 = Until next map load
 		 * -1 = Browser session
 		 * 1800 = 30 minutes
 		 * 3600 = 1 hour
 		 * 86400 = 1 day
 		 * 604800 = 1 week
-		 * 2678400 = 1 month
-		 */
+		 * 2678400 = 1 month */
 		String value = "-1";
 		switch (s){
 			case "Browser session": 
 				value = "-1";
-				return s;
+				return value;
 			case "Until next map load":
 				value = "0";
-				return s;
+				return value;
 			case "30 minutes":
 				value = "1800";
-				return s;
+				return value;
 			case "1 hour":
 				value = "3600";
-				return s;
+				return value;
 			case "1 day":
 				value = "86400";
-				return s;
+				return value;
 			case "1 week":
 				value = "604800";
-				return s;
+				return value;
 			case "1 month":
 				value = "2678400";
-				return s;
+				return value;
 			default:
 				return "-1";
 		}
-
+	}
+	
+	public String getErrorMessage(){
+		return errorMsg;
+	}
+	
+	public String getBaseURL(){
+		return baseURL;
+	}
+	
+	public HashMap<String, String> getSessionCookies(){
+		return sessionCookies;
 	}
 }
