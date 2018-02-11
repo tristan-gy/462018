@@ -20,7 +20,9 @@ public abstract class PageHandler {
 		HashMap<String, String> cookies = LoginHandler.getSessionCookies();
 		HashMap<String, String> formData = new HashMap<>();
 		formData.clear();
-		formData.put(baseURL+subDir, params);
+		formData.put(baseURL+subDir, params); // instead of doing this
+		// parse out param names + values
+		// formData.put(paramName0, paramVal0) for each param
 		
 		try { 
 			Connection.Response page = Jsoup.connect(baseURL + subDir)
