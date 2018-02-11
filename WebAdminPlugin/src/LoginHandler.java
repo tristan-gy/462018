@@ -10,58 +10,71 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 public class LoginHandler {
+	private static String baseURL = "none";
 	private static String errorMsg = "";
 	private static boolean loginSuccess;
 	private static Document home;
 	private static HashMap<String, String> sessionCookies;
 	
-	public static boolean attemptLogin(ArrayList<String> loginDetails) throws Exception {
+	public static boolean attemptLogin(ArrayList<String> loginDetails) throws IOException {
 		return login(loginDetails);
 	}
 	
 	/* http://joelmin.blogspot.com/2016/04/how-to-login-to-website-using-jsoup-java_4.html */
-	private static boolean login(ArrayList<String> loginDetails) throws IOException{
+	public static boolean login(ArrayList<String> loginDetails) throws IOException {
 		String USER_AGENT = "Mozilla/5.0";
 		HashMap<String, String> cookies = new HashMap<>();
 		HashMap<String, String> formData = new HashMap<>();
-		
-		Connection.Response loginForm = Jsoup.connect(loginDetails.get(0))
-				.method(Connection.Method.GET)
-				.userAgent(USER_AGENT)
-				.execute();
-		cookies.putAll(loginForm.cookies());
-
-		Document loginDoc = loginForm.parse();
-		
-		String token = extractToken(loginDoc);
-		
-		formData.put("password", loginDetails.get(2));
-		formData.put("password_hash", "");
-		formData.put("remember", choiceStringToValue(loginDetails.get(3)));
-		formData.put("token", token);
-		formData.put("username", loginDetails.get(1));
-		
-		Connection.Response homePage = Jsoup.connect(loginDetails.get(0))
-				.cookies(cookies)
-				.data(formData)
-				.method(Connection.Method.POST)
-				.userAgent(USER_AGENT)
-				.execute();
-		
-		Document homeDoc = homePage.parse();
-		
-		if(!loginDoc.title().equals(homeDoc.title())){
-			System.out.println(homeDoc.title());
-			Test.setBaseURL(loginDetails.get(0));
+		try { 
+			Connection.Response loginForm = Jsoup.connect(loginDetails.get(0))
+					.method(Connection.Method.GET)
+					.userAgent(USER_AGENT)
+					.execute();
+			cookies.putAll(loginForm.cookies());
+	
+			Document loginDoc = loginForm.parse();
+			
+			String token = extractToken(loginDoc);
+			
+			formData.put("password", loginDetails.get(2));
+			formData.put("password_hash", "");
+			//formData.put("remember", choiceStringToValue(loginDetails.get(3)));
+			formData.put("remember", "-1");
+			formData.put("token", token);
+			formData.put("username", loginDetails.get(1));
+			
+			Connection.Response homePage = Jsoup.connect(loginDetails.get(0))
+					.cookies(cookies)
+					.data(formData)
+					.method(Connection.Method.POST)
+					.userAgent(USER_AGENT)
+					.execute();
+			
+			Document homeDoc = homePage.parse();
+			if(!loginDoc.title().equals(homeDoc.title())){//if we logged in successfully to our home page
+				System.out.println("Home: " + homeDoc.title());
+				baseURL = loginDetails.get(0);
+				sessionCookies = cookies;
+				home = homeDoc;
+				return true;
+			}
+		}
+		catch(IOException e) { //if literally anything goes wrong
+			System.out.println("Login failed.");
+			errorMsg = "error : " + e.toString();
+		}
+		return false;
+		/*if(!loginDoc.title().equals(homeDoc.title())){
+			System.out.println("Home: " + homeDoc.title());
+			baseURL = loginDetails.get(0);
 			sessionCookies = cookies;
 			home = homeDoc;
 			return true;
 		} else {
-			System.out.println("Login failed.");
-			errorMsg = homeDoc.getElementsByClass("message error").text();
-			Test.setBaseURL(errorMsg);
+
+			//errorMsg = homeDoc.getElementsByClass("message error").text();
 			return false;	
-		}
+		}*/
 		
 	}
 	
@@ -126,6 +139,8 @@ public class LoginHandler {
 	public static String getErrorMessage(){return errorMsg;}
 	
 	public static Document getHome(){return home;}
+	
+	public static String getBaseURL(){return baseURL;}
 	
 	public static HashMap<String, String> getSessionCookies(){return sessionCookies;}
 }
