@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -28,7 +29,7 @@ public class LoginGUI extends GUIHandler {
 	private final int prefY = 275;
 	
 	private boolean loginSuccess = false;
-	private ArrayList<String> userInfo = new ArrayList<>();
+	private HashMap<String, String> userInfo = new HashMap<>();
 	
 	public LoginGUI(Stage primaryStage){
 		this.primaryStage = primaryStage;
@@ -104,15 +105,14 @@ public class LoginGUI extends GUIHandler {
 			@Override
 			public void handle(ActionEvent event){
 				userInfo.clear(); //clear our userinfo every time so we don't keep adding user data if an attempt fails
-				userInfo.add(tf_url.getText());
-				userInfo.add(tf_username.getText());
-				userInfo.add(tf_password.getText());
+				userInfo.put("username", tf_username.getText());
+				userInfo.put("password", tf_password.getText());
 				if(goodCredentials(userInfo)){	
 					//userInfo.add(choices.getSelectionModel().getSelectedItem().toString());
-					userInfo.add("-1");
+					//userInfo.add("-1");
 					System.out.println(tf_url.getText());
 					try {
-						loginSuccess = LoginHandler.login(userInfo);
+						loginSuccess = LoginHandler.login(userInfo, tf_url.getText());
 						if(loginSuccess){
 							lbl_error.setTextFill(Color.GREEN);
 							lbl_error.setText("Login successful!");
@@ -140,14 +140,10 @@ public class LoginGUI extends GUIHandler {
 		return myScene;
 	}
 
-	private boolean goodCredentials(ArrayList<String> creds){
-		/* url, username, pass */
-		String url = creds.get(0);
-		String username = creds.get(1);
-		String password = creds.get(2);
-		if(!url.contains(".") || url.length() < 4){
-			return false;
-		}
+	private boolean goodCredentials(HashMap<String, String> creds){
+		/* username, pass */
+		String username = creds.get("username");
+		String password = creds.get("password");
 		if(username.length() < 4){
 			return false;
 		}

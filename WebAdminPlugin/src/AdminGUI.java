@@ -73,13 +73,14 @@ public class AdminGUI extends GUIHandler {
 			@Override
 			public void handle(KeyEvent event){
 				if(event.getCode().equals(KeyCode.ENTER)) {
-					System.out.println(tf_sendChat.getText());
-					chatHandler.sendChat(tf_sendChat.getText());
+					String sentMessage = chatHandler.sendChat(tf_sendChat.getText());
+					if(!sentMessage.equals("")){
+						tf_chat.appendText(sentMessage);
+						tf_sendChat.clear();
+					}
 				}
 			}
 		});
-		
-		
 /*		Timeline chatUpdate = new Timeline(
 			new KeyFrame(Duration.seconds(5), e -> {
 					System.out.println("updating chat...");

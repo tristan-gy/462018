@@ -1,5 +1,4 @@
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 //import java.util.Map;
 
@@ -15,18 +14,18 @@ public class LoginHandler {
 	private static boolean loginSuccess;
 	private static Document home;
 	private static HashMap<String, String> sessionCookies;
+	private static HashMap<String, String> userCredentials;
 	
-	public static boolean attemptLogin(ArrayList<String> loginDetails) throws IOException {
-		return login(loginDetails);
+	public static boolean attemptLogin(HashMap<String, String> loginDetails, String URL) throws IOException {
+		return login(loginDetails, URL);
 	}
 	
 	/* http://joelmin.blogspot.com/2016/04/how-to-login-to-website-using-jsoup-java_4.html */
-	public static boolean login(ArrayList<String> loginDetails) throws IOException {
+	public static boolean login(HashMap<String, String> loginDetails, String URL) throws IOException {
 		String USER_AGENT = "Mozilla/5.0";
 		HashMap<String, String> cookies = new HashMap<>();
-		HashMap<String, String> formData = new HashMap<>();
 		try { 
-			Connection.Response loginForm = Jsoup.connect(loginDetails.get(0))
+			Connection.Response loginForm = Jsoup.connect(URL)
 					.method(Connection.Method.GET)
 					.userAgent(USER_AGENT)
 					.execute();
@@ -36,16 +35,13 @@ public class LoginHandler {
 			
 			String token = extractToken(loginDoc);
 			
-			formData.put("password", loginDetails.get(2));
-			formData.put("password_hash", "");
-			//formData.put("remember", choiceStringToValue(loginDetails.get(3)));
-			formData.put("remember", "-1");
-			formData.put("token", token);
-			formData.put("username", loginDetails.get(1));
-			
-			Connection.Response homePage = Jsoup.connect(loginDetails.get(0))
+			loginDetails.put("password_hash", "");
+			loginDetails.put("remember", "-1");
+			loginDetails.put("token", token);
+
+			Connection.Response homePage = Jsoup.connect(URL)
 					.cookies(cookies)
-					.data(formData)
+					.data(loginDetails)
 					.method(Connection.Method.POST)
 					.userAgent(USER_AGENT)
 					.execute();
@@ -53,8 +49,9 @@ public class LoginHandler {
 			Document homeDoc = homePage.parse();
 			if(!loginDoc.title().equals(homeDoc.title())){//if we logged in successfully to our home page
 				System.out.println("Home: " + homeDoc.title());
-				baseURL = loginDetails.get(0);
+				baseURL = URL;
 				sessionCookies = cookies;
+				userCredentials = loginDetails;
 				home = homeDoc;
 				return true;
 			}
@@ -64,18 +61,6 @@ public class LoginHandler {
 			errorMsg = "error : " + e.toString();
 		}
 		return false;
-		/*if(!loginDoc.title().equals(homeDoc.title())){
-			System.out.println("Home: " + homeDoc.title());
-			baseURL = loginDetails.get(0);
-			sessionCookies = cookies;
-			home = homeDoc;
-			return true;
-		} else {
-
-			//errorMsg = homeDoc.getElementsByClass("message error").text();
-			return false;	
-		}*/
-		
 	}
 	
 	/* Returns the value of our token */
@@ -143,4 +128,6 @@ public class LoginHandler {
 	public static String getBaseURL(){return baseURL;}
 	
 	public static HashMap<String, String> getSessionCookies(){return sessionCookies;}
+
+	public static HashMap<String, String> getUserCredentials(){return userCredentials;}
 }
