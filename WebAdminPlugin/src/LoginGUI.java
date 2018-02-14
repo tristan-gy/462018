@@ -1,17 +1,18 @@
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
+//import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -23,30 +24,33 @@ import javafx.stage.Stage;
 
 public class LoginGUI extends GUIHandler { 
 	
-	private Stage primaryStage;
-	private Scene myScene;
-	private final int prefX = 400;
-	private final int prefY = 275;
+	private int prefX;
+	private int prefY;
 	
 	private boolean loginSuccess = false;
 	private HashMap<String, String> userInfo = new HashMap<>();
 	
-	public LoginGUI(Stage primaryStage){
-		this.primaryStage = primaryStage;
-		getScene();
+	private BooleanProperty loggedIn = new SimpleBooleanProperty();
+	
+	public LoginGUI(Stage primaryStage, int prefX, int prefY){
+		this.prefX = prefX;
+		this.prefY = prefY;
 	}
 	
-	public Scene getScene(){
-
+	public Tab getTab(){
+		Tab t = new Tab();
+		
 		GridPane grid = new GridPane();
-		grid.setPrefSize(prefX, prefY);
+
 		ColumnConstraints column1 = new ColumnConstraints();
 		column1.setPercentWidth(25);
 		ColumnConstraints column2 = new ColumnConstraints();
 		column2.setPercentWidth(75);
-		column2.setHalignment(HPos.RIGHT);
+		column2.setHalignment(HPos.LEFT);
 		grid.getColumnConstraints().addAll(column1, column2);
-
+		grid.setPrefSize(prefX, prefY);
+		//grid.setMaxSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
+		
 		//grid.setGridLinesVisible(true);
 		grid.setAlignment(Pos.CENTER);
 		grid.setHgap(10);
@@ -58,8 +62,8 @@ public class LoginGUI extends GUIHandler {
 		grid.add(lbl_error, 0, 6);
 		grid.add(lbl_errorMsg, 1, 6);
 		
-		Text sceneTitle = new Text("Enter Server Information");
-		sceneTitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+		Text sceneTitle = new Text("Server Information");
+		sceneTitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 14));
 		grid.add(sceneTitle, 0, 0, 1, 1);
 		
 		Label server = new Label("Server URL:");
@@ -78,7 +82,7 @@ public class LoginGUI extends GUIHandler {
 		PasswordField tf_password = new PasswordField();
 		grid.add(tf_password, 1, 3);
 		
-		ChoiceBox<String> choices = new ChoiceBox<String>();
+		//ChoiceBox<String> choices = new ChoiceBox<String>();
 		/*
 		 * choices.getItems().add("Browser session");
 		choices.getItems().add("Until next map load");
@@ -110,7 +114,7 @@ public class LoginGUI extends GUIHandler {
 				if(goodCredentials(userInfo)){	
 					//userInfo.add(choices.getSelectionModel().getSelectedItem().toString());
 					//userInfo.add("-1");
-					System.out.println(tf_url.getText());
+					//System.out.println(tf_url.getText());
 					try {
 						loginSuccess = LoginHandler.login(userInfo, tf_url.getText());
 						if(loginSuccess){
@@ -118,7 +122,7 @@ public class LoginGUI extends GUIHandler {
 							lbl_error.setText("Login successful!");
 							lbl_errorMsg.setText(""); //remove any error messages we have gotten previously
 							System.out.println("Base URL: " + LoginHandler.getBaseURL());
-							switchScene();
+							loggedIn.set(loginSuccess);
 						} else {
 							lbl_errorMsg.setText("");
 							lbl_error.setTextFill(Color.RED);
@@ -130,14 +134,13 @@ public class LoginGUI extends GUIHandler {
 						lbl_error.setTextFill(Color.RED);
 						lbl_error.setText("Error:");
 						lbl_errorMsg.setText(LoginHandler.getErrorMessage());
-
 					}
 				}
 			}
 		});
-		
-		myScene = new Scene(grid, prefX, prefY);
-		return myScene;
+
+		t.setContent(grid);
+		return t;
 	}
 
 	private boolean goodCredentials(HashMap<String, String> creds){
@@ -152,11 +155,13 @@ public class LoginGUI extends GUIHandler {
 		}
 		return true;
 	}
-
-	public void switchScene(){
-		AdminGUI adminGUI = new AdminGUI(this.primaryStage);
-		Scene adminScene = adminGUI.getScene();
-		this.primaryStage.setScene(adminScene);
+	
+	public boolean getLoginSuccess(){
+		return loginSuccess;
+	}
+	
+	public final BooleanProperty getProperty(){
+		return loggedIn;
 	}
 	
 }

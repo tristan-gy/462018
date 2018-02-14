@@ -39,11 +39,11 @@ public class ChatHandler extends PageHandler {
 				String username, message;
 				
 				//the format of messages sent via teamchat is different
-				if(e.getElementsByTag("span").get(0).text().equals("teamcolor")){
+				if(e.getElementsByTag("span").get(1).text().equals("(Team)")){
 					String team = e.getElementsByTag("span").get(1).text();
 					username = e.getElementsByTag("span").get(2).text();
 					message = e.getElementsByTag("span").get(3).text();
-					msg.append(team);
+					msg.append(team + " ");
 				} else {
 					username = e.getElementsByTag("span").get(1).text();
 					message = e.getElementsByTag("span").get(2).text();

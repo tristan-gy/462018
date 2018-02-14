@@ -1,37 +1,33 @@
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.event.ActionEvent;
+import java.util.ArrayList;
 import javafx.event.EventHandler;
-import javafx.geometry.HPos;
+//import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
+import javafx.scene.Node;
+//import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.RowConstraints;
+//import javafx.scene.layout.RowConstraints;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
-public class AdminGUI extends GUIHandler {
+public class ChatGUI extends GUIHandler implements InterfaceGUI {
 
 	private ChatHandler chatHandler;
-	private Stage primaryStage;
-	private Scene myScene;
+	private ArrayList<Node> chatNodes;
 	
-	public AdminGUI(Stage primaryStage){
-		chatHandler = new ChatHandler(LoginHandler.getBaseURL(), "current/chat+frame+data");
-		this.primaryStage = primaryStage;
-		getScene();
+	public ChatGUI(Stage primaryStage, ChatHandler ch){
+		chatNodes = new ArrayList<>();
+		this.chatHandler = ch;
 	}
 	
-	public Scene getScene() {
-		//Stage primaryStage = new Stage();
+	public Tab getTab() {
+		Tab t = new Tab();
 		GridPane grid = new GridPane();
 		
 		grid.setAlignment(Pos.CENTER);
@@ -43,8 +39,7 @@ public class AdminGUI extends GUIHandler {
 		ColumnConstraints col2 = new ColumnConstraints();
 		col2.setPercentWidth(75);
 		grid.getColumnConstraints().addAll(col1, col2);
-		grid.setGridLinesVisible(true);
-		
+		//grid.setGridLinesVisible(true);
 		
 		Label chat = new Label("Chat:");
 
@@ -58,16 +53,7 @@ public class AdminGUI extends GUIHandler {
 		Label sendChat = new Label("Send message:");
 		grid.add(sendChat, 0, 2);
 		
-		Button btn = new Button();
-		//grid.add(btn, 1, 0);
-		btn.setText("Update Chat");
-		grid.addRow(0, chat, btn);
-		btn.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event){
-				tf_chat.appendText(chatHandler.getChat());
-			}
-		});
+		grid.addRow(0, chat);
 		
 		tf_sendChat.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
@@ -81,20 +67,14 @@ public class AdminGUI extends GUIHandler {
 				}
 			}
 		});
-/*		Timeline chatUpdate = new Timeline(
-			new KeyFrame(Duration.seconds(5), e -> {
-					System.out.println("updating chat...");
-					tf_chat.appendText(chatHandler.getChat());
-			})
-		);
-		chatUpdate.setCycleCount(-1);
-		chatUpdate.play();
-*/
-		myScene = new Scene(grid, 600, 400);
-		return myScene;
-		//primaryStage.setTitle("KF2 WebAdmin Plugin " + Test.getVersion());
-		//primaryStage.setScene(scene);
-		//primaryStage.show();
+		t.setContent(grid);
+		chatNodes.add(tf_chat);
+		chatNodes.add(tf_sendChat);
+		return t;
+	}
+	
+	public ArrayList<Node> getNodes(){
+		return chatNodes;
 	}
 	
 }
