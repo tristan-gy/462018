@@ -19,7 +19,7 @@ The tool performs all of the functions that WebAdmin does:
 	 - Change number of players, add/remove mutators, allow/disallow spectators
 	 - Server passwords
 
- - Provide server administrators with an ability to set up voting on specific certain server parameters using chat commands (these changes will only take affect after the server changes levels). The ability to revert to "normal" settings (as defined by the administrator) after all players leave will be available. For example, if your server typically runs on Suicidal/Survival/Medium, the server will be automatically reset to these parameters after all players leave.
+ - Provide server administrators with an ability to set up voting on certain server parameters using chat commands (these changes will only take affect after the server changes levels). The ability to revert to "normal" settings (as defined by the administrator) after all players leave will be available. For example, if your server typically runs on Suicidal/Survival/Medium, the server will be automatically reset to these parameters after all players leave.
 	 - Vote on difficulty (Normal, Hard, Suicidal, Hell on Earth)
 	 - Gamemode (Survival, Weekly, Endless, Versus)
 	 - Match length (Short, Medium, Long)
