@@ -4,6 +4,7 @@ import java.util.HashMap;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class LoginHandler {
@@ -13,6 +14,7 @@ public class LoginHandler {
 	private static Document home;
 	private static HashMap<String, String> sessionCookies;
 	private static HashMap<String, String> userCredentials;
+	private static HashMap<String, String> basicServerInformation;
 	
 	public static boolean attemptLogin(HashMap<String, String> loginDetails, String URL) throws IOException {
 		return login(loginDetails, URL);
@@ -46,13 +48,14 @@ public class LoginHandler {
 			
 			Document homeDoc = homePage.parse();
 			if(!loginDoc.title().equals(homeDoc.title())){//if we logged in successfully to our home page
-				System.out.println("Home: " + homeDoc.title());
 				baseURL = URL;
 				sessionCookies = cookies;
 				userCredentials = loginDetails;
 				home = homeDoc;
+				basicServerInformation = parseHomePage(homeDoc);
 				return true;
 			}
+			
 		}
 		catch(IOException e) { //if literally anything goes wrong
 			System.out.println("Login failed.");
@@ -80,40 +83,37 @@ public class LoginHandler {
 		return token;
 	}
 	
-	private static String choiceStringToValue(String s){
-		/* 0 = Until next map load
-		 * -1 = Browser session
-		 * 1800 = 30 minutes
-		 * 3600 = 1 hour
-		 * 86400 = 1 day
-		 * 604800 = 1 week
-		 * 2678400 = 1 month */
-		String value = "-1";
-		switch (s){
-			case "Browser session": 
-				value = "-1";
-				return value;
-			case "Until next map load":
-				value = "0";
-				return value;
-			case "30 minutes":
-				value = "1800";
-				return value;
-			case "1 hour":
-				value = "3600";
-				return value;
-			case "1 day":
-				value = "86400";
-				return value;
-			case "1 week":
-				value = "604800";
-				return value;
-			case "1 month":
-				value = "2678400";
-				return value;
-			default:
-				return "-1";
+	private static HashMap<String, String> parseHomePage(Document info){
+		HashMap<String, String> ret = new HashMap<>();
+		
+		/* We want the information provided by two elements (class names are "section")
+		 *
+		 * This div will give us our server name, cheat protection, game type
+		 * and mutators
+		 * div class = "section"
+		 * 	dl id = "currentGame"
+		 *   dt Server Name
+		 *    dd Delivery Boys - Long/Suicidal/HoE
+		 *   dt Cheat Protection
+		 *    dd On
+		 *   dt Game type
+		 *    dd Survival
+		 *   dt Mutators
+		 *    dd</dd> (none in this case)
+		 *    
+		 * This div will give us our difficulty and spectators
+		 */
+		Elements divSections = info.getElementsByClass("section");
+		
+		for(Element e : divSections){
+			Elements dts = e.getElementsByTag("dt");
+			Elements dds = e.getElementsByTag("dd");
+			for(int i = 0; i < dts.size(); i++){
+				ret.put(dts.get(i).text(), dds.get(i).text());
+			}
 		}
+		return ret;
+		
 	}
 	
 	/* Getters */ 
@@ -128,4 +128,6 @@ public class LoginHandler {
 	public static HashMap<String, String> getSessionCookies(){return sessionCookies;}
 
 	public static HashMap<String, String> getUserCredentials(){return userCredentials;}
+	
+	public static HashMap<String, String> getBasicServerInfo(){return basicServerInformation;}
 }

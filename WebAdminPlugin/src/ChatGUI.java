@@ -28,6 +28,7 @@ public class ChatGUI extends GUIHandler implements InterfaceGUI {
 	
 	public Tab getTab() {
 		Tab t = new Tab();
+		t.setClosable(false);
 		GridPane grid = new GridPane();
 		
 		grid.setAlignment(Pos.CENTER);
@@ -35,13 +36,11 @@ public class ChatGUI extends GUIHandler implements InterfaceGUI {
 		grid.setVgap(15);
 		grid.setPadding(new Insets(25, 25, 25, 25));
 		ColumnConstraints col1 = new ColumnConstraints();
-		col1.setPercentWidth(25);
+		col1.setPercentWidth(20);
 		ColumnConstraints col2 = new ColumnConstraints();
-		col2.setPercentWidth(75);
+		col2.setPercentWidth(80);
 		grid.getColumnConstraints().addAll(col1, col2);
 		//grid.setGridLinesVisible(true);
-		
-		Label chat = new Label("Chat:");
 
 		TextArea tf_chat = new TextArea();
 		tf_chat.setEditable(false);
@@ -51,9 +50,10 @@ public class ChatGUI extends GUIHandler implements InterfaceGUI {
 		TextField tf_sendChat = new TextField();
 		grid.add(tf_sendChat, 1, 2);
 		Label sendChat = new Label("Send message:");
+		sendChat.setWrapText(true);
 		grid.add(sendChat, 0, 2);
 		
-		grid.addRow(0, chat);
+		//grid.addRow(0, chat);
 		
 		tf_sendChat.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
@@ -72,8 +72,9 @@ public class ChatGUI extends GUIHandler implements InterfaceGUI {
 		chatNodes.add(tf_sendChat);
 		return t;
 	}
-	
-	public ArrayList<Node> getNodes(){
+
+	@Override
+	public ArrayList<Node> getNodes() {
 		return chatNodes;
 	}
 	

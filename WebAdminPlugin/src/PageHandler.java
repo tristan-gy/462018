@@ -7,17 +7,17 @@ import org.jsoup.nodes.Document;
 
 public abstract class PageHandler {
 
-	private boolean successState;
+	private Document lastDocument;
 	private String baseURL;
 	private String subDir;
 	private HashMap<String, String> sessionCookies;
+	private HashMap<String, String> formData;
 	private final int MAX_RETRIES = 10;
 	
 	PageHandler(String baseURL, String subDir){
 		this.baseURL = baseURL;
 		this.subDir = subDir;
 		this.sessionCookies = LoginHandler.getSessionCookies();
-		this.successState = false;
 	}
 	
 	public Document post(HashMap<String, String> formData){
@@ -29,12 +29,28 @@ public abstract class PageHandler {
 					.method(Connection.Method.POST)
 					.userAgent(USER_AGENT)
 					.execute();
-			this.successState = true;
-			return page.parse();
+			this.formData = formData;
+			lastDocument = page.parse();
+			return lastDocument;
 		}
 		catch(IOException e) { //if literally anything goes wrong
 			System.out.println("POST failed: " + e.getMessage() + "...Attempting relogin.");
-			this.successState = false;
+			relogin(formData);
+			return null;
+		}
+	}
+	
+	public Document get(){
+		try { 
+			Connection.Response page = Jsoup.connect(baseURL + subDir)
+					.cookies(sessionCookies)
+					.method(Connection.Method.GET)
+					.execute();
+			lastDocument = page.parse();
+			return lastDocument;
+		}
+		catch(IOException e) { //if literally anything goes wrong
+			System.out.println("POST failed: " + e.getMessage() + "...Attempting relogin.");
 			relogin(formData);
 			return null;
 		}
@@ -46,26 +62,19 @@ public abstract class PageHandler {
 		while(!loginSuccess && retryCount < MAX_RETRIES){
 			try {
 				loginSuccess = LoginHandler.attemptLogin(LoginHandler.getUserCredentials(), baseURL);
-				sessionCookies = LoginHandler.getSessionCookies();
-				this.successState = false;
+				this.sessionCookies = LoginHandler.getSessionCookies();
+				this.formData = formData;
 			} catch (IOException e) {
-				this.successState = false;
 				System.out.println("bad relogin");
 				e.printStackTrace();
 			}
 		}
 		if(loginSuccess){ 
 			System.out.println("Reconnected to server!");
-			this.successState = true;
 			this.post(formData);
 		} else if (!loginSuccess){
 			System.out.println("Failed to reconnect to server!");
-			this.successState = false;
 		}
 	}
-	
-	public boolean getSuccessState(){
-		return this.successState;
-	}
-	
+
 }

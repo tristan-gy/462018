@@ -32,7 +32,7 @@ public class ChatHandler extends PageHandler {
 		Document chat = super.post(params);
 
 		try { 
-			if(!chat.hasText() || chat.getElementsByClass("message").text().isEmpty()){
+			if(!chat.hasText() || chat.getElementsByClass("message").text().isEmpty() || chat == null){
 				return "";
 			}
 			for(Element e : chat.getElementsByClass("chatmessage")){
@@ -53,7 +53,7 @@ public class ChatHandler extends PageHandler {
 			}
 			return msg.toString();
 		} catch (Exception e){
-			return "LOST CONNECTION TO SERVER. RETRYING.\n";
+			return null;
 		}
 		
 	}
@@ -67,7 +67,7 @@ public class ChatHandler extends PageHandler {
 		params.put("teamsay", "-1");
 		Document chat = super.post(params);
 		try {
-			if(!chat.hasText() || chat.getElementsByClass("message").text().isEmpty()){
+			if(!chat.hasText() || chat.getElementsByClass("message").text().isEmpty() || chat == null){
 				return "";
 			}
 			for(Element e : chat.getElementsByClass("chatmessage")){
@@ -78,10 +78,8 @@ public class ChatHandler extends PageHandler {
 			}
 			return sb.toString();
 		} catch (Exception e){
-			return "LOST CONNECTION TO SERVER. RETRYING.\n";
+			return null;
 		}
 	}
-	
-	
-	
+
 }

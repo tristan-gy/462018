@@ -24,22 +24,21 @@ import javafx.stage.Stage;
 
 public class LoginGUI extends GUIHandler { 
 	
-	private int prefX;
-	private int prefY;
+	private double prefX;
+	private double prefY;
 	
 	private boolean loginSuccess = false;
 	private HashMap<String, String> userInfo = new HashMap<>();
 	
 	private BooleanProperty loggedIn = new SimpleBooleanProperty();
 	
-	public LoginGUI(Stage primaryStage, int prefX, int prefY){
+	public LoginGUI(Stage primaryStage, double prefX, double prefY){
 		this.prefX = prefX;
 		this.prefY = prefY;
 	}
 	
 	public Tab getTab(){
 		Tab t = new Tab();
-		
 		GridPane grid = new GridPane();
 
 		ColumnConstraints column1 = new ColumnConstraints();
@@ -49,7 +48,6 @@ public class LoginGUI extends GUIHandler {
 		column2.setHalignment(HPos.LEFT);
 		grid.getColumnConstraints().addAll(column1, column2);
 		grid.setPrefSize(prefX, prefY);
-		//grid.setMaxSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
 		
 		//grid.setGridLinesVisible(true);
 		grid.setAlignment(Pos.CENTER);
@@ -81,19 +79,6 @@ public class LoginGUI extends GUIHandler {
 		grid.add(password, 0, 3);
 		PasswordField tf_password = new PasswordField();
 		grid.add(tf_password, 1, 3);
-		
-		//ChoiceBox<String> choices = new ChoiceBox<String>();
-		/*
-		 * choices.getItems().add("Browser session");
-		choices.getItems().add("Until next map load");
-		choices.getItems().add("30 minutes");
-		choices.getItems().add("1 hour");
-		choices.getItems().add("1 day");
-		choices.getItems().add("1 week");
-		choices.getItems().add("1 month");
-		choices.getSelectionModel().selectFirst();
-		*/
-		//grid.add(choices, 1, 4);
 
 		Button btn = new Button();
 
@@ -112,16 +97,13 @@ public class LoginGUI extends GUIHandler {
 				userInfo.put("username", tf_username.getText());
 				userInfo.put("password", tf_password.getText());
 				if(goodCredentials(userInfo)){	
-					//userInfo.add(choices.getSelectionModel().getSelectedItem().toString());
-					//userInfo.add("-1");
-					//System.out.println(tf_url.getText());
 					try {
 						loginSuccess = LoginHandler.login(userInfo, tf_url.getText());
 						if(loginSuccess){
 							lbl_error.setTextFill(Color.GREEN);
 							lbl_error.setText("Login successful!");
 							lbl_errorMsg.setText(""); //remove any error messages we have gotten previously
-							System.out.println("Base URL: " + LoginHandler.getBaseURL());
+							//System.out.println("Base URL: " + LoginHandler.getBaseURL());
 							loggedIn.set(loginSuccess);
 						} else {
 							lbl_errorMsg.setText("");
