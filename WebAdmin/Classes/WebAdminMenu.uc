@@ -1,0 +1,333 @@
+/**
+ * Menu manager for the webadmin
+ *
+ * Copyright 2008 Epic Games, Inc. All Rights Reserved
+ *
+ * @author  Michiel 'elmuerte' Hendriks
+ */
+class WebAdminMenu extends Object;
+
+struct MenuItem
+{
+	/**
+	 * The absolute path (from the webapp path). Examples:
+	 * foo
+	 * foo/bar/quux
+	 * bar
+	 * bar/quux
+	 * bar/quux2
+	 * bar/quux2+data
+	 *
+	 * The bar/quux2+data item will be considered as a sub page of bar/quux2
+	 * When checking for permissions bar/quux2 will be used instead of
+	 * bar/quux2+data
+	 */
+	var string path;
+	/**
+	 * The path to use for permission checking. Will default to path
+	 */
+	var string permPath;
+	/**
+	 * Title of the menu item. If empty the menu item is not shown in the
+	 * rendered menu
+	 */
+	var string title;
+	/**
+	 * A short description
+	 */
+	var string description;
+	/**
+	 * The weight of this item. A low number means it will be higher in the list.
+	 */
+	var int weight;
+	/**
+	 * If true, the menu item is not rendered. Can be used to hide previously
+	 * visible menu items from the navigation menu.
+	 */
+	var bool hidden;
+	/**
+	 * The handler responsible for handling this menu item.
+	 */
+	var IQueryHandler handler;
+};
+
+var array<MenuItem> menu;
+
+var WebAdmin webadmin;
+
+struct TreeItem
+{
+	/**
+	 * Index to the item in the menu list;
+	 */
+	var int cur;
+	/**
+	 * Path element
+	 */
+	var string elm;
+	var array<int> children;
+};
+
+var array<TreeItem> tree;
+
+/**
+ * Add an item to the menu, or if the path already exist, update an existing
+ * item. To create a hidden item simply leave out the title.
+ */
+function addMenuItem(MenuItem item)
+{
+	local int idx;
+	idx = menu.find('path', item.path);
+	if (len(item.permPath) == 0)
+	{
+		item.permPath = item.path;
+	}
+	if (idx > -1)
+	{
+		menu[idx].title = item.title;
+		menu[idx].description = item.description;
+		menu[idx].weight = item.weight;
+		menu[idx].handler = item.handler;
+	}
+	else {
+		menu.addItem(item);
+	}
+}
+
+/**
+ * Add a new menu item (or overwrite the previous for the given path).
+ */
+function addMenu(string path, string title, IQueryHandler handler,
+	optional string description = "", optional int weight = 0,
+	optional string permPath = "")
+{
+	local MenuItem item;
+	item.path = path;
+	item.title = title;
+	item.description = description;
+	item.weight = weight;
+	item.handler = handler;
+	item.permPath = permPath;
+	item.hidden = len(title) == 0;
+	addMenuItem(item);
+}
+
+/**
+ * Get the menu handler for a given path
+ */
+function IQueryHandler getHandlerFor(string path, out string title, out string desc)
+{
+	local int idx;
+	idx = menu.find('path', path);
+	if (idx > -1)
+	{
+		title = menu[idx].title;
+		desc = menu[idx].description;
+		return menu[idx].handler;
+	}
+	return none;
+}
+
+function setVisibility(string path, bool isVisible)
+{
+	local int idx;
+	idx = menu.find('path', path);
+	if (idx > -1)
+	{
+		menu[idx].hidden = !isVisible;
+	}
+}
+
+/**
+ * return the menu instance of the given user. All paths to which the user has
+ * no access will be filtered from the list.
+ *
+ * @return none when the user has absolutely no access, otherwise an instance is
+ *			returned that only contains the paths the user has access to.
+ */
+function WebAdminMenu getUserMenu(IWebAdminUser forUser)
+{
+	local WebAdminMenu result;
+	local MenuItem entry, dummy;
+
+	if (!forUser.canPerform(webadmin.getAuthURL("/")))
+	{
+		return none;
+	}
+
+	result = new(webadmin) class; // create a new instance this class
+	result.webadmin = webadmin;
+	foreach menu(entry)
+	{
+		if (forUser.canPerform(webadmin.getAuthURL(entry.permPath)))
+		{
+			result.addSortedItem(entry);
+		}
+		else {
+			dummy.path = entry.path;
+			dummy.weight = entry.weight;
+			result.addSortedItem(dummy);
+		}
+	}
+	result.createTree();
+	return result;
+}
+
+
+/**
+ * Add a menu item to the list sorting on the full path.
+ */
+protected function addSortedItem(MenuItem item)
+{
+	local MenuItem entry;
+	local int idx;
+	foreach menu(entry, idx)
+	{
+		if (entry.path > item.path)
+		{
+			menu.InsertItem(idx, item);
+			return;
+		}
+	}
+	menu.AddItem(item);
+}
+
+/**
+ * Parses the sorted list of menu items and creates the tree.
+ */
+protected function createTree()
+{
+	local MenuItem entry;
+	local int idx;
+
+	local int i, idx2, parent, child;
+	local array<string> parts;
+	local bool found;
+
+	tree.Length = 1;
+	tree[0].cur = -1;
+
+	foreach menu(entry, idx)
+	{
+		ParseStringIntoArray(entry.path, parts, "/", true);
+		parent = 0;
+		i = 0;
+
+		// find the parent item
+		while (i < parts.length-1)
+		{
+			found = false;
+			foreach tree[parent].children(child)
+			{
+				if (tree[child].elm == parts[i])
+				{
+					i++;
+					parent = child;
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+			{
+				// create a dummy item
+				tree.Add(1);
+				tree[tree.length-1].cur = -1;
+				tree[tree.length-1].elm = parts[i];
+				tree[parent].children.AddItem(tree.length-1);
+				parent = tree.length-1;
+				i++;
+			}
+		}
+
+		// add the item
+		found = false;
+		foreach tree[parent].children(child, idx2)
+		{
+			if (menu[tree[child].cur].weight > entry.weight)
+			{
+				tree[parent].children.Insert(idx2, 1);
+				tree[parent].children[idx2] = tree.length;
+				tree.Add(1);
+				tree[tree.length-1].cur = idx;
+				tree[tree.length-1].elm = parts[parts.length-1];
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+		{
+			idx2 = tree[parent].children.length;
+			tree[parent].children.add(1);
+			tree[parent].children[idx2] = tree.length;
+			tree.Add(1);
+			tree[tree.length-1].cur = idx;
+			tree[tree.length-1].elm = parts[parts.length-1];
+		}
+	}
+}
+
+/**
+ * Render the current menu tree to a navigation menu
+ */
+function string render(optional string menu_template = "/navigation_menu.inc",
+	optional string item_template = "/navigation_item.inc")
+{
+	local string result;
+	local WebResponse wr;
+	local MenuItem entry;
+	local array<MenuItem> menuCopy;
+
+	wr = new class'WebResponse';
+	if (tree.Length == 0)
+	{
+		menuCopy = menu;
+		menu.length = 0;
+		foreach menuCopy(entry)
+		{
+			addSortedItem(entry);
+		}
+		createTree();
+	}
+	result = renderChilds(tree[0].children, wr, menu_template, item_template);
+	wr.subst("navigation.items", result);
+	return wr.LoadParsedUHTM(webadmin.path$menu_template);
+}
+
+protected function string renderChilds(array<int> childs, WebResponse wr,
+	optional string menu_template = "/navigation_menu.inc",
+	optional string item_template = "/navigation_item.inc")
+{
+	local int child, menuid;
+	local string result, subitems;
+	foreach childs(child)
+	{
+		menuid = tree[child].cur;
+		if ((menuid > -1) && !menu[menuid].hidden && (Len(menu[menuid].title) > 0))
+		{
+			if (tree[child].children.length > 0)
+			{
+				subitems = renderChilds(tree[child].children, wr, menu_template, item_template);
+				if (len(subitems) > 0)
+				{
+					wr.subst("navigation.items", subitems, true);
+					subitems = wr.LoadParsedUHTM(webadmin.path$menu_template);
+				}
+			}
+			else {
+				subitems = "";
+			}
+			wr.subst("item.submenu", subitems, true);
+			wr.subst("item.type", tree[child].children.length > 0?"with-submenu":"no-submenu");
+			wr.subst("item.path", webadmin.path$menu[menuid].path);
+			wr.subst("item.menupath", menu[menuid].path);
+			wr.subst("item.title", menu[menuid].title);
+			wr.subst("item.description", menu[menuid].description);
+			result $= wr.LoadParsedUHTM(webadmin.path$item_template);
+		}
+		else if (tree[child].children.length > 0)
+		{
+			result $= renderChilds(tree[child].children, wr, menu_template, item_template);
+		}
+	}
+	return result;
+}

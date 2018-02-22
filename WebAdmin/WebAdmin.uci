@@ -1,0 +1,159 @@
+//
+// Set up a specific build profile
+//
+`define BUILD_PROFILE "KF2"
+
+`define WITH_WEBCONX_FIX present
+`define WITH_MAX_CUSTCHARS present
+`define WITH_NO_CUSTOM_CHARS present
+`define WITH_NO_SEAMLESS_TRAVEL present
+`define WITH_SPAWN_PROTECTION present
+`define WITH_SESSION_BAN present
+`define WITH_MAP_REPLAY_LIMIT present
+`define WITH_INT_MOD present
+`define WITH_MUTATORS
+`define WITH_BOTS
+`define WITH_WELCOME_SETTINGS present
+
+// Various subclasses of base classes which expose additional logic which
+// is common to most games, yet not part of the core engine
+`define GameInfo KFGameInfo
+`define GameReplicationInfo KFGameReplicationInfo
+`define PlayerController KFPlayerController
+`define AccessControl KFAccessControl
+
+// TODO: remove fixme?
+`define GAME_UT3
+`define WITH_BANCDHASH
+
+`if(`notdefined(BUILD_PROFILE))
+	//!WARNING! No build profile defined
+	`define BUILD_PROFILE "unknown"
+`endif
+
+//
+// Swicthes used for conditional compilation
+//
+
+// If defined not empty: text muting is available
+`if(`notdefined(WITH_TEXT_MUTE))
+	`define WITH_TEXT_MUTE
+`endif
+
+// If non-emtpy, include session banning support
+`if(`notdefined(WITH_SESSION_BAN))
+	`define WITH_SESSION_BAN
+`endif
+
+
+// !!!! OLD STUFF, check this !!!!
+
+// include workaround for bug #37 if non-empty
+`if(`notdefined(WITH_WEBCONX_FIX))
+	`define WITH_WEBCONX_FIX
+`endif
+
+// If non-empty use bannedinfo records in the accesscontrol
+`if(`notdefined(WITH_BANNEDINFO))
+	`define WITH_BANNEDINFO
+`endif
+
+`if(`notdefined(WITH_MAX_CUSTCHARS))
+	`define WITH_MAX_CUSTCHARS
+`endif
+
+// If non-empty use the voting system in UT3 1.3.
+`if(`notdefined(WITH_VOTING_1_3))
+	`define WITH_VOTING_1_3
+`endif
+
+// If non-empty use the voting system in UT3 1.4
+`if(`notdefined(WITH_VOTING_1_4))
+	`define WITH_VOTING_1_4
+`endif
+
+// validate this switch
+`if(`WITH_VOTING_1_3)
+	`if(`WITH_VOTING_1_4)
+		#ERROR Cannot enable both WITH_VOTING_1_3 and WITH_VOTING_1_4
+	`endif
+`endif
+
+// If non-empty, the "no custom characters option" is available (UT3 1.3+)
+`if(`notdefined(WITH_NO_CUSTOM_CHARS))
+	`define WITH_NO_CUSTOM_CHARS
+`endif
+
+// If non-empty, the "no custom seamless travel option" is available (UT3 1.4+)
+`if(`notdefined(WITH_NO_SEAMLESS_TRAVEL))
+	`define WITH_NO_SEAMLESS_TRAVEL
+`endif
+
+// If non-empty, the "spawn protection setting" is available (UT3 1.4+)
+`if(`notdefined(WITH_SPAWN_PROTECTION))
+	`define WITH_SPAWN_PROTECTION
+`endif
+
+// If non-emtpy, ClearConfig() function exists  (UT3 1.4+)
+`if(`notdefined(WITH_CLEAR_CONFIG))
+	`define WITH_CLEAR_CONFIG
+`endif
+
+// If non-emtpy the map replay limit option exists (UT3 2.1+)
+`if(`notdefined(WITH_MAP_REPLAY_LIMIT))
+	`define WITH_MAP_REPLAY_LIMIT
+`endif
+
+// If non-empty use the generic news interface
+`if(`notdefined(WITH_GENERIC_NEWS_INTERFACE))
+	`define WITH_GENERIC_NEWS_INTERFACE
+`endif
+
+// The classname for the character information class
+`if(`notdefined(CHARINFO_CLASSNAME))
+	`define CHARINFO_CLASSNAME UTCustomChar_Data
+`endif
+
+// If not empty, the engine supports GetSpecialValue and SetSpecialValue
+`if(`notdefined(WITH_SPECIALVALUE))
+	`define WITH_SPECIALVALUE
+`endif
+
+// If non empty the engine contains an integer mod operator
+`if(`notdefined(WITH_INT_MOD))
+	`define WITH_INT_MOD
+`endif
+
+// If non empty mutators exist in this game
+`if(`notdefined(WITH_MUTATORS))
+	`define WITH_MUTATORS
+`endif
+
+// If non empty bots exist in this game
+`if(`notdefined(WITH_BOTS))
+	`define WITH_BOTS
+`endif
+
+`if(`notdefined(WITH_WELCOME_SETTINGS))
+	`define WITH_WELCOME_SETTINGS
+`endif
+
+//
+// Other macros
+//
+
+//
+`if(`WITH_INT_MOD)
+	`define mod(a,b) `a % `b
+`else
+	`define mod(a,b) int(`a % `b)
+`endif
+
+`define HTMLEscape(str) class'WebAdminUtils'.static.HTMLEscape(`str)
+`define Trim(str) class'WebAdminUtils'.static.Trim(`str)
+
+`define SetBoolPropertyByName(name,var) SetIntPropertyByName(`name, int(`var))
+`define GetBoolPropertyByName(name,var) if (GetIntPropertyByName(`name, val)) {	`var = val != 0; }
+
+// KFGameInfo is bTeamGame per definition, but usually only 1 created team
+`define isTeamGame(gi) (`gi.bTeamGame && (KFGameInfo(`gi) == none || KFGameInfo(`gi).teams[1] != none))

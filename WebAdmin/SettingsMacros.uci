@@ -1,0 +1,154 @@
+// cast gameinfo to the correct subclass
+`define x_gic(cls) `if(`cls) `{cls} (gameinfo) `else gameinfo `endif
+// simply return the name
+`define x_gi(cls) `if(`cls) `{cls} `else GameInfo `endif
+
+//
+// Generic property function that sets the property value to the "live" value, or
+// otherwise the default value.
+// gameInfoClass should be empty for the root GameInfo
+// Only use the GI_* macros for direct class acces, use GT_* macros to reference a variable
+//
+`define GI_Set_PropertyByName(type,propName,gameInfoClass,var) \
+	if (`x_gic(`gameInfoClass) != none)\
+	{\
+		Set`{type}PropertyByName(`if(`propName) `propName `else '`{var}' `endif, `x_gic(`gameInfoClass).`{var});\
+	}\
+	else {\
+		Set`{type}PropertyByName(`if(`propName) `propName `else '`{var}' `endif, class'`x_gi(`gameInfoClass)'.default.`{var});\
+	}\
+
+`define GI_Get_PropertyByName(type,propName,gameInfoClass,var) \
+	Get`{type}PropertyByName(`if(`propName) `propName `else '`{var}' `endif, class'`x_gi(`gameInfoClass)'.default.`{var});\
+	if (`x_gic(`gameInfoClass) != none)\
+	{\
+		Get`{type}PropertyByName(`if(`propName) `propName `else '`{var}' `endif, `x_gic(`gameInfoClass).`{var});\
+	}\
+
+`define GI_SetFloatPropertyByName(propName,gameInfoClass,var) `GI_Set_PropertyByName(Float, `propName, `gameInfoClass, `var)
+`define GI_SetIntPropertyByName(propName,gameInfoClass,var) `GI_Set_PropertyByName(Int, `propName, `gameInfoClass, `var)
+`define GI_SetStringPropertyByName(propName,gameInfoClass,var) `GI_Set_PropertyByName(String, `propName, `gameInfoClass, `var)
+
+`define GI_GetFloatPropertyByName(propName,gameInfoClass,var) `GI_Get_PropertyByName(Float, `propName, `gameInfoClass, `var)
+`define GI_GetIntPropertyByName(propName,gameInfoClass,var) `GI_Get_PropertyByName(Int, `propName, `gameInfoClass, `var)
+`define GI_GetStringPropertyByName(propName,gameInfoClass,var) `GI_Get_PropertyByName(String, `propName, `gameInfoClass, `var)
+
+`define GI_SetBoolPropertyByName(propName,gameInfoClass,var) \
+	if (`x_gic(`gameInfoClass) != none)\
+	{\
+		SetIntPropertyByName(`if(`propName) `propName `else '`{var}' `endif, int(`x_gic(`gameInfoClass).`{var}));\
+	}\
+	else {\
+		SetIntPropertyByName(`if(`propName) `propName `else '`{var}' `endif, int(class'`x_gi(`gameInfoClass)'.default.`{var}));\
+	}\
+
+`define GI_GetBoolPropertyByName(propName,gameInfoClass,var) \
+	if (GetIntPropertyByName(`if(`propName) `propName `else '`{var}' `endif, val))\
+	{\
+		class'`x_gi(`gameInfoClass)'.default.`{var} = val != 0;\
+		if (`x_gic(`gameInfoClass) != none)\
+		{\
+			`x_gic(`gameInfoClass).`{var} = val != 0;\
+		}\
+	}\
+
+`define GI_SetStringArrayPropertyByName(propName,gameInfoClass,var,delim) \
+	if (`x_gic(`gameInfoClass) != none)\
+	{\
+		SetStringArrayPropertyByName(`if(`propName) `propName `else '`{var}' `endif, `x_gic(`gameInfoClass).`{var}, `{delim});\
+	}\
+	else {\
+		SetStringArrayPropertyByName(`if(`propName) `propName `else '`{var}' `endif, class'`x_gi(`gameInfoClass)'.default.`{var}, `{delim});\
+	}\
+
+`define GI_GetStringArrayPropertyByName(propName,gameInfoClass,var,delim) \
+	GetStringArrayPropertyByName(`if(`propName) `propName `else '`{var}' `endif, class'`x_gi(`gameInfoClass)'.default.`{var}, `{delim});\
+	if (`x_gic(`gameInfoClass) != none)\
+	{\
+		GetStringArrayPropertyByName(`if(`propName) `propName `else '`{var}' `endif, `x_gic(`gameInfoClass).`{var}, `{delim});\
+	}\
+
+
+//
+// GI_* like macros that reference a class variable rather than the class directly
+//
+
+// When using these make sure you set the following defines:
+// `define GIV_CLASS MyClass
+// `define GIV_VAR MyVariable
+
+`define GIV_Set_PropertyByName(type,propName,var) \
+	if (`{GIV_CLASS} (gameinfo) != none)\
+	{\
+		Set`{type}PropertyByName(`if(`propName) `propName `else '`{var}' `endif, `{GIV_CLASS} (gameinfo).`{var});\
+	}\
+	else {\
+		Set`{type}PropertyByName(`if(`propName) `propName `else '`{var}' `endif, `{GIV_VAR}.default.`{var});\
+	}\
+
+`define GIV_Get_PropertyByName(type,propName,var) \
+	Get`{type}PropertyByName(`if(`propName) `propName `else '`{var}' `endif, `{GIV_VAR}.default.`{var});\
+	if (`{GIV_CLASS} (gameinfo) != none)\
+	{\
+		Get`{type}PropertyByName(`if(`propName) `propName `else '`{var}' `endif, `{GIV_CLASS} (gameinfo).`{var});\
+	}\
+
+`define GIV_SetFloatPropertyByName(propName,var) `GIV_Set_PropertyByName(Float, `propName, `var)
+`define GIV_SetIntPropertyByName(propName,var) `GIV_Set_PropertyByName(Int, `propName, `var)
+`define GIV_SetStringPropertyByName(propName,var) `GIV_Set_PropertyByName(String, `propName, `var)
+
+`define GIV_GetFloatPropertyByName(propName,var) `GIV_Get_PropertyByName(Float, `propName, `var)
+`define GIV_GetIntPropertyByName(propName,var) `GIV_Get_PropertyByName(Int, `propName, `var)
+`define GIV_GetStringPropertyByName(propName,var) `GIV_Get_PropertyByName(String, `propName, `var)
+
+`define GIV_SetBoolPropertyByName(propName,var) \
+	if (`{GIV_CLASS} (gameinfo) != none)\
+	{\
+		SetIntPropertyByName(`if(`propName) `propName `else '`{var}' `endif, int(`{GIV_CLASS} (gameinfo).`{var}));\
+	}\
+	else {\
+		SetIntPropertyByName(`if(`propName) `propName `else '`{var}' `endif, int(`{GIV_VAR}.default.`{var}));\
+	}\
+
+`define GIV_GetBoolPropertyByName(propName,var) \
+	if (GetIntPropertyByName(`if(`propName) `propName `else '`{var}' `endif, val))\
+	{\
+		`{GIV_VAR}.default.`{var} = val != 0;\
+		if (`{GIV_CLASS} (gameinfo) != none)\
+		{\
+			`{GIV_CLASS} (gameinfo).`{var} = val != 0;\
+		}\
+	}\
+
+`define GIV_SetStringArrayPropertyByName(propName,var,delim) \
+	if (`{GIV_CLASS} (gameinfo) != none)\
+	{\
+		SetStringArrayPropertyByName(`if(`propName) `propName `else '`{var}' `endif, `{GIV_CLASS} (gameinfo).`{var}, `{delim});\
+	}\
+	else {\
+		SetStringArrayPropertyByName(`if(`propName) `propName `else '`{var}' `endif, `{GIV_VAR}.default.`{var}, `{delim});\
+	}\
+
+`define GIV_GetStringArrayPropertyByName(propName,var,delim) \
+	GetStringArrayPropertyByName(`if(`propName) `propName `else '`{var}' `endif, `{GIV_VAR}.default.`{var}, `{delim});\
+	if (`{GIV_CLASS} (gameinfo) != none)\
+	{\
+		GetStringArrayPropertyByName(`if(`propName) `propName `else '`{var}' `endif, `{GIV_CLASS} (gameinfo).`{var}, `{delim});\
+	}\
+
+
+
+
+// Some helper functions to make definitions in the default properties easier
+
+`define def_boolproperty(id,name) \
+	Properties.Add((PropertyId=`id,Data=(Type=SDT_Int32)))\n\
+	PropertyMappings.Add((Id=`id,name=`name,MappingType=PVMT_IdMapped,ValueMappings=((Id=0),(Id=1))))\n\
+
+`define def_floatproperty(id,name,min,max,inc) \
+	Properties.Add((PropertyId=`id,Data=(Type=SDT_Float)))\n\
+	PropertyMappings.Add((Id=`id,name=`name,MappingType=PVMT_Ranged,MinVal=`min,MaxVal=`max,RangeIncrement=`inc))\n\
+
+`define def_intproperty(id,name,min,max,inc) \
+	Properties.Add((PropertyId=`id,Data=(Type=SDT_Int32)))\n\
+	PropertyMappings.Add((Id=`id,name=`name,MappingType=PVMT_Ranged,MinVal=`min,MaxVal=`max,RangeIncrement=`inc))\n\
